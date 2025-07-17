@@ -1,0 +1,136 @@
+﻿@page "/game"
+
+<h1 style="color:deepskyblue;text-align:center">Memory Card Game</h1>
+
+
+@if (IsGameStarted)
+{
+    <div style="display:flex; justify-content:center; align-items:center; height:25vh;">
+        <button style="color:white; background-color:lightcoral; border:none; padding:10px 20px; border-radius:5px;" @onclick="StartGame">
+             Reset Game
+        </button>
+    </div>
+    <p style="text-align:center; color:dodgerblue;">Turn: @Turns</p>
+
+    <div>
+        @foreach (var card in CardDeck)
+        {
+            <img @onclick="() => FlipCard(card.Id)" 
+            src="@(card.IsFlipped || card.IsMatched ? card.FrontImage : card.BackImage)" 
+            alt=" X " 
+            style="width: 100px; height: 120px; margin: 10px;" 
+            />
+        }
+    </div>
+
+    @if (WinCondition)
+    {
+        <h1 style="text-align: center; color:limegreen; font-weight:bold;">You win!🎉</h1>
+    }
+}
+else
+{
+    <div style="display: flex; justify-content: center; align-items: center; height: 25vh;">
+        <button style="background-color: lightskyblue; border:none; padding:10px 20px; border-radius:5px;" @onclick="StartGame" type="button">Start Game</button>
+    </div>
+}
+@code{
+    private List<Card> CardDeck = new List<Card>();
+
+    private bool IsGameStarted = false;
+    private bool IsBusy = false;
+    private int Turns = 0;
+    private int Matches = 0;
+    private bool WinCondition => CardDeck.All(c => c.IsMatched);
+
+
+    private void StartGame()
+    {
+        CardDeck.Clear();
+        IsGameStarted = true;
+
+        System.Diagnostics.Debug.WriteLine("StartGame clicked!");
+
+        var OGSet = new List<Card>();
+
+        for (int i = 1; i <= 6; i++)
+        {
+            OGSet.Add(new Card($"card{i}", i, $"img{i}.png", "back.png"));
+        }
+
+        foreach (var card in OGSet)
+        {
+            CardDeck.Add(card);
+            CardDeck.Add(new Card(
+                card.Id + "_copy",
+                card.Value,
+                card.FrontImage,
+                card.BackImage
+            ));
+        }
+
+        var rng = new Random();
+
+        int n = CardDeck.Count;
+        while (n > 1)
+        {
+            n--;
+            int k = rng.Next(n + 1);
+            var temp = CardDeck[k];
+            CardDeck[k] = CardDeck[n];
+            CardDeck[n] = temp;
+        }
+
+        foreach (var card in CardDeck)
+        {
+            Console.WriteLine($"Card ID: {card.Id}, Value: {card.Value}");
+        }
+
+        StateHasChanged();
+    }
+
+    private List<Card> FlippedCards = new List<Card>();
+
+    private async Task FlipCard(string cardId)
+    {
+        if (IsBusy)
+            return;
+
+        var selectedCard = CardDeck.FirstOrDefault(c => c.Id == cardId);
+
+        if (selectedCard == null || selectedCard.IsFlipped || selectedCard.IsMatched)
+            return;
+
+        selectedCard.IsFlipped = true;
+        FlippedCards.Add(selectedCard);
+
+        if (FlippedCards.Count == 2)
+        {
+            IsBusy = true;
+
+            var firstCard = FlippedCards[0];
+            var secondCard = FlippedCards[1];
+
+            if (firstCard.Value == secondCard.Value)
+            {
+                firstCard.IsMatched = true;
+                secondCard.IsMatched = true;
+            }
+            else
+            {
+                await Task.Delay(1000);
+                firstCard.IsFlipped = false;
+                secondCard.IsFlipped = false;
+            }
+
+            Turns++;
+            FlippedCards.Clear();
+            IsBusy = false;
+        }
+
+        StateHasChanged();
+    }
+
+}
+
+
