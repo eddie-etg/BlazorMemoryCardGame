@@ -1,30 +1,43 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">MemoryFlipCardGame</a>
+﻿    
+<div class="sidebar-container @(isNavVisible ? "" : "collapsed")">
+    <div class="top-row ps-3 navbar navbar-dark">
+        <div class="container-fluid d-flex align-items-center">
+            <button type="button" class="btn btn-outline-light me-2" @onclick=NavToggle>☰</button>
+            @* <a class="navbar-brand mb-0 h1" href="">Memory</a> *@
+        </div>
+    </div>
+
+    <div class="nav-scrollable">
+        <nav class="flex-column">
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                        <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span>
+                        <span class="label">Home</span>
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="game">
+                        <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span>
+                        <span class="label">Game</span>
+                </NavLink>
+            </div>
+
+            <div class="nav-item px-3">
+                <NavLink class="nav-link" href="weather">
+                        <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span>
+                        <span class="label">Weather</span>
+                </NavLink>
+            </div>
+        </nav>
     </div>
 </div>
+@code{
+        bool isNavVisible = true;
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
-
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="game">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Game
-            </NavLink>
-        </div>
-
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
-    </nav>
-</div>
+        private void NavToggle()
+        {
+            isNavVisible = !isNavVisible;
+        }
+}
 

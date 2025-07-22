@@ -1,0 +1,23 @@
+﻿.card-grid{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(4, auto);
+    gap: 1rem;
+    justify-items: center;
+    align-items; center;
+    max-width: 60%;
+    margin: 2rem auto;
+    padding: 1rem;
+}
+
+.memory-card{
+    width: 100px;
+    height: 140px;
+    background-color: rgba( 255, 255, 255, 0.1);
+    border-radius: 10px;
+    transition: transform 0.2s ease;
+}
+
+.memory-card:hover{
+    transform: scale(1.10);
+}

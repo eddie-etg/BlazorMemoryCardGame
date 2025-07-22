@@ -12,14 +12,13 @@
     </div>
     <p style="text-align:center; color:dodgerblue;">Turn: @Turns</p>
 
-    <div>
+    <div class="card-grid">
         @foreach (var card in CardDeck)
         {
             <img @onclick="() => FlipCard(card.Id)" 
             src="@(card.IsFlipped || card.IsMatched ? card.FrontImage : card.BackImage)" 
             alt=" X " 
-            style="width: 100px; height: 120px; margin: 10px;" 
-            />
+            class="memory-card" />
         }
     </div>
 
@@ -48,6 +47,7 @@ else
     {
         CardDeck.Clear();
         IsGameStarted = true;
+        Turns = 0;
 
         System.Diagnostics.Debug.WriteLine("StartGame clicked!");
 
