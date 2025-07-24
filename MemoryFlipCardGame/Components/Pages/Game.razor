@@ -1,5 +1,10 @@
 ﻿@page "/game"
 
+@using MemoryFlipCardGame.Data
+@using MemoryFlipCardGame.Models.Database
+@using Microsoft.EntityFrameworkCore
+@inject MemoryCardContext Db
+
 <h1 style="color:deepskyblue;text-align:center">Memory Card Game</h1>
 
 
@@ -10,7 +15,7 @@
              Reset Game
         </button>
     </div>
-    <p style="text-align:center; color:dodgerblue;">Turn: @Turns</p>
+    <p style="text-align:center; color:dodgerblue;">Turn: @Session.Turns</p>
 
     <div class="card-grid">
         @foreach (var card in CardDeck)
@@ -26,6 +31,17 @@
     {
         <h1 style="text-align: center; color:limegreen; font-weight:bold;">You win!🎉</h1>
     }
+
+    @if (Session.GameWon && !ScoreSubmitted)
+    {
+        <div style="text-align:center; margin-top:20px;">
+            <input placeholder="Enter your name" @bind="PlayerName" maxlength="9" />
+            <button @onclick="SubmitScore" style="margin-left:10px;">Save Score</button>
+        </div>
+    }
+
+    <Leaderboard RefreshTrigger="@ScoreSubmitted" />
+
 }
 else
 {
@@ -36,20 +52,25 @@ else
 @code{
     private List<Card> CardDeck = new List<Card>();
 
+    private GameSession Session = new GameSession();
+
     private bool IsGameStarted = false;
     private bool IsBusy = false;
-    private int Turns = 0;
-    private int Matches = 0;
     private bool WinCondition => CardDeck.All(c => c.IsMatched);
+    private string PlayerName = string.Empty;
+    private bool ScoreSubmitted = false;
 
 
     private void StartGame()
     {
         CardDeck.Clear();
         IsGameStarted = true;
-        Turns = 0;
 
-        System.Diagnostics.Debug.WriteLine("StartGame clicked!");
+        Session = new GameSession
+            {
+                StartTime = DateTime.Now
+            };
+
 
         var OGSet = new List<Card>();
 
@@ -81,10 +102,6 @@ else
             CardDeck[n] = temp;
         }
 
-        foreach (var card in CardDeck)
-        {
-            Console.WriteLine($"Card ID: {card.Id}, Value: {card.Value}");
-        }
 
         StateHasChanged();
     }
@@ -103,6 +120,7 @@ else
 
         selectedCard.IsFlipped = true;
         FlippedCards.Add(selectedCard);
+        Session.Flips++;
 
         if (FlippedCards.Count == 2)
         {
@@ -115,20 +133,46 @@ else
             {
                 firstCard.IsMatched = true;
                 secondCard.IsMatched = true;
+                Session.Matches++;
             }
             else
             {
                 await Task.Delay(1000);
                 firstCard.IsFlipped = false;
                 secondCard.IsFlipped = false;
+                Session.MissedMatches++;
             }
 
-            Turns++;
+            Session.Turns++;
             FlippedCards.Clear();
             IsBusy = false;
+
+            if (WinCondition && !Session.GameWon)
+            {
+                Session.GameWon = true;
+                Session.EndTime = DateTime.Now;
+            }
         }
 
+
         StateHasChanged();
+    }
+
+    private async Task SubmitScore()
+    {
+        var score = new ScoreLeaderboard()
+        {
+            PlayerName = PlayerName,
+            Wins = 1,
+            TotalFlips = Session.Flips,
+            TotalMatches = Session.Matches,
+            DatePlayed = DateTime.Now,
+        };
+
+        Db.ScoreLeaderboards.Add(score);
+        await Db.SaveChangesAsync();
+
+        ScoreSubmitted = true;
     }
 
 }
