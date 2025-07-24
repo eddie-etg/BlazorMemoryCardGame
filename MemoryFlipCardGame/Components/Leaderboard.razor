@@ -1,0 +1,49 @@
+﻿@using MemoryFlipCardGame.Models.Database
+@using Microsoft.EntityFrameworkCore
+@using MemoryFlipCardGame.Data
+@inject MemoryCardContext Db
+
+<table class="leaderboard-table">
+    <thead>
+        <tr>
+            <th>Player</th>
+            <th>Matches</th>
+            <th>Flips</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Leaderboards.Any())
+        {
+            @foreach (var score in Leaderboards)
+            {
+                <tr>
+                    <td>@score.PlayerName</td>
+                    <td>@score.TotalMatches</td>
+                    <td>@score.TotalFlips</td>
+                    <td>@score.DatePlayed?.ToShortDateString()</td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr><td colspan="4">No scores yet.</td></tr>
+        }
+    </tbody>
+</table>
+
+@code{
+    [Parameter]
+    public bool RefreshTrigger { get; set; }
+
+    private List<ScoreLeaderboard> Leaderboards = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        Leaderboards = await Db.ScoreLeaderboards
+            .OrderByDescending(s => s.TotalMatches)
+            .ThenBy(s => s.TotalFlips)
+            .Take(10)
+            .ToListAsync();
+    }
+}
